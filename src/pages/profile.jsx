@@ -3,77 +3,11 @@ import { Link } from 'react-router-dom';
 import { Button } from 'antd';
 import React ,{useEffect,useState} from 'react';
 import { ethers } from 'ethers'
-import { EthersAdapter ,protocolKit} from '@safe-global/protocol-kit'
 
-import {
-    SafeAuthPack,
-
-  } from '@safe-global/auth-kit'
 
 const Profile = () => {
-  const greeting = "Hello, World!";
-  const [safeAuthPack, setSafeAuthPack] = useState()
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [safeAuthSignInResponse, setSafeAuthSignInResponse] = useState(
-    null
-  )
 
-
-useEffect(() => {
-    // @ts-expect-error - Missing globals
-    const params = new URL(window.document.location).searchParams
-    const chainId = params.get('chainId')
-    
-    
-    ;(async () => {
-      const options= {
-        enableLogging: true,
-        buildEnv: 'production',
-        chainConfig: {
-          chainId: chainId || '0x64',
-          rpcTarget: 'https://gnosis.drpc.org'
-        }
-      }
-
-      const authPack = new SafeAuthPack()
-      const web3Provider = authPack.getProvider()
-      const provider = new ethers.BrowserProvider(authPack.getProvider())
-      const signer = provider.getSigner()
-      await authPack.init(options)
-      const ethAdapter = new EthersAdapter({
-        ethers,
-        signerOrProvider: signer || provider,
-      })
-   
-
-      // Instantiate the protocolKit
-  
-      console.log('safeAuthPack:safeEmbed', authPack.safeAuthEmbed)
-
-      setSafeAuthPack(authPack)
-
-      authPack.subscribe('accountsChanged', async (accounts) => {
-        console.log('safeAuthPack:accountsChanged', accounts, authPack.isAuthenticated)
-        if (authPack.isAuthenticated) {
-          const signInInfo = await authPack?.signIn()
-
-          setSafeAuthSignInResponse(signInInfo)
-          setIsAuthenticated(true)
-          let xy=await authPack.getUserInfo();
-          let wa=await authPack.getAddress();
-          console.log
-          setUname(xy.name)
-          setEmail(xy.email)
-          setWalletId(wa)
-          
-        }
-      })
-
-      authPack.subscribe('chainChanged', (eventData) =>
-        console.log('safeAuthPack:chainChanged', eventData)
-      )
-    })()
-  }, [])
+const [isAuthenticated,setIsAuthenticated]=useState(false)
 
 
   const [uname,setUname]=useState("");

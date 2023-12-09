@@ -4,102 +4,20 @@ import { Button } from 'antd';
 import { ethers } from 'ethers';
 import { Link } from 'react-router-dom';
 import { useEffect ,useState} from 'react';
-
-import {
-  SafeAuthPack,
- 
-} from '@safe-global/auth-kit'
-
-
+import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
+import { useAccount, useConnect, useDisconnect } from 'wagmi'
 
 const Intro = () => {
-
-  const [safeAuthPack, setSafeAuthPack] = useState()
-  const [isAuthenticated, setIsAuthenticated] = useState()
-  const [safeAuthSignInResponse, setSafeAuthSignInResponse] = useState(
-    null
-  )
-  const [userInfo, setUserInfo] = useState(null)
-  const [chainId, setChainId] = useState()
-  const [balance, setBalance] = useState()
-  const [consoleMessage, setConsoleMessage] = useState()
-  const [consoleTitle, setConsoleTitle] = useState()
-  const [provider, setProvider] = useState()
-
-  useEffect(() => {
-    // @ts-expect-error - Missing globals
-    const params = new URL(window.document.location).searchParams
-    const chainId = params.get('chainId')
-
-    ;(async () => {
-      const options= {
-        enableLogging: true,
-        buildEnv: 'production',
-        chainConfig: {
-          chainId: chainId || '0x64',
-          rpcTarget: 'https://gnosis.drpc.org'
-        }
-      }
-
-      const authPack = new SafeAuthPack()
-
-      await authPack.init(options)
-
-      console.log('safeAuthPack:safeEmbed', authPack.safeAuthEmbed)
-
-      setSafeAuthPack(authPack)
-
-      authPack.subscribe('accountsChanged', async (accounts) => {
-        console.log('safeAuthPack:accountsChanged', accounts, authPack.isAuthenticated)
-        if (authPack.isAuthenticated) {
-          const signInInfo = await authPack?.signIn()
-
-          setSafeAuthSignInResponse(signInInfo)
-          setIsAuthenticated(true)
-        }
-      })
-
-      authPack.subscribe('chainChanged', (eventData) =>
-        console.log('safeAuthPack:chainChanged', eventData)
-      )
-    })()
-  }, [])
-
-  useEffect(() => {
-    if (!safeAuthPack || !isAuthenticated) return
-    ;(async () => {
-      const web3Provider = safeAuthPack.getProvider()
-      const userInfo = await safeAuthPack.getUserInfo()
-
-      setUserInfo(userInfo)
-
-      if (web3Provider) {
-        const provider = new setProvider(safeAuthPack.getProvider())
-        const signer = await provider.getSigner()
-        const signerAddress = await signer.getAddress()
-        console.log(userInfo)
-        // eslint-disable-next-line no-unsafe-optional-chaining
-        setChainId((await provider?.getNetwork()).chainId.toString())
-        setBalance(
-          ethers.formatEther((await provider.getBalance(signerAddress)))
-        )
-        setProvider(provider)
-      }
-    })()
-  }, [isAuthenticated])
-
-  const login= async()=>{
-    
-
-    let signInData = await safeAuthPack.signIn();
-    console.log(signInData)
-     
+  const { address, isConnected ,connector} = useAccount()
+  const { connect, connectors, error, isLoading, pendingConnector } =
+    useConnect()
+  const { disconnect } = useDisconnect()
+  
+  const login =async () =>{
+    connect(connector)
   }
-
-  const logout = async()=>{
-    await safeAuthPack.signOut();
-    setIsAuthenticated(false)
-    setUserInfo(null)
+  const logout=async ()=>{
+disconnect()
   }
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -110,7 +28,7 @@ const Intro = () => {
           <Link to="/" className="text-gray-300 hover:text-black">Home</Link>
           <Button>
           {
-            isAuthenticated ?
+            isConnected ?
             <><Link onClick={logout} className="hover:text-gray-300">Sign Out</Link></>
             :
             <><Link onClick={login} className="hover:text-gray-300">Sign In</Link></>
@@ -119,7 +37,23 @@ const Intro = () => {
           {/* Add more navigation links as needed */}
         </div>
       </nav>
-
+      <div>
+      {connectors.map((connector) => (
+        <button
+          disabled={!connector.ready}
+          key={connector.id}
+          onClick={() => connect({ connector })}
+        >
+          {connector.name}
+          {!connector.ready && ' (unsupported)'}
+          {isLoading &&
+            connector.id === pendingConnector?.id &&
+            ' (connecting)'}
+        </button>
+      ))}
+ 
+      {error && <div>{error.message}</div>}
+    </div>
       {/* Main Content */}
       <div className="container mx-auto p-8">
         {/* Main Heading */}
