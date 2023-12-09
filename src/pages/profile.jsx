@@ -2,12 +2,16 @@
 import { Link } from 'react-router-dom';
 import { Button } from 'antd';
 import React ,{useEffect,useState} from 'react';
-import {
+import { ethers } from 'ethers'
+import { EthersAdapter ,protocolKit} from '@safe-global/protocol-kit'
+
+import {Safe,
     SafeAuthPack,
     SafeAuthConfig,
     SafeAuthInitOptions,
     SafeAuthUserInfo
   } from '@safe-global/auth-kit'
+
 const Profile = () => {
   const greeting = "Hello, World!";
   const [safeAuthPack, setSafeAuthPack] = useState()
@@ -21,21 +25,34 @@ useEffect(() => {
     // @ts-expect-error - Missing globals
     const params = new URL(window.document.location).searchParams
     const chainId = params.get('chainId')
-
+    
+    
     ;(async () => {
       const options= {
         enableLogging: true,
         buildEnv: 'production',
         chainConfig: {
-          chainId: chainId || '0x64',
+          chainId: chainId || '64',
           rpcTarget: 'https://gnosis.drpc.org'
         }
       }
 
       const authPack = new SafeAuthPack()
-
+      const web3Provider = safeAuthPack.getProvider()
+      const provider = new ethers.BrowserProvider(authPack.getProvider())
+      const signer = provider.getSigner()
       await authPack.init(options)
+      const ethAdapter = new EthersAdapter({
+        ethers,
+        signerOrProvider: signer || provider,
+      })
+      const safeAddress =  '0x'
 
+      // Instantiate the protocolKit
+      const protocolKit = await Safe.create({
+        ethAdapter,
+       safeAddress
+      })
       console.log('safeAuthPack:safeEmbed', authPack.safeAuthEmbed)
 
       setSafeAuthPack(authPack)
@@ -47,7 +64,13 @@ useEffect(() => {
 
           setSafeAuthSignInResponse(signInInfo)
           setIsAuthenticated(true)
-          console.log(authPack.getAddress)
+          let xy=await authPack.getUserInfo();
+          let wa=await authPack.getAddress();
+          console.log
+          setUname(xy.name)
+          setEmail(xy.email)
+          setWalletId(wa)
+          
         }
       })
 
@@ -57,50 +80,34 @@ useEffect(() => {
     })()
   }, [])
 
-  const userProfile = {
-    name: 'John Doe',
-    isScientist: true,
-    email: 'john.doe@example.com',
-    walletId: 'your_safe_wallet_id', // Add the wallet ID field
-    publishedResearch: [
-      {
-        title: 'Title of Research 1',
-        publicationDate: '2023-01-15',
-        // Add more research details as needed
-      },
-      {
-        title: 'Title of Research 2',
-        publicationDate: '2023-02-28',
-        // Add more research details as needed
-      },
-    ],
-    stakedAmounts: [
-      {
-        currency: 'ETH',
-        amount: 10.5,
-        // Add more staked amount details as needed
-      },
-      {
-        currency: 'BTC',
-        amount: 5.2,
-        // Add more staked amount details as needed
-      },
-    ],
-    fundedAmounts: [
-        {
-          currency: 'USD',
-          amount: 10000,
-          // Add more funded amount details as needed
-        },
-        {
-          currency: 'EUR',
-          amount: 8000,
-          // Add more funded amount details as needed
-        },
-      ],
-    // Add more profile information as needed
-  };
 
+  const [uname,setUname]=useState("");
+  const [isScientist,setScientist]=useState(false)
+  const [email,setEmail]=useState('');
+  const [walletId,setWalletId]=useState('');
+const [stakedAmount,setStakedAmount]=useState(0.0)
+const [stakedCoin,setStakedCoin]=useState(null);
+
+
+
+const createT=async ()=>{
+  const safeTransactionData= {
+    to: '0x3e50874CdAb58B6fAf539da09B6966a1BE597D5C',
+    data: '0x',
+    value: ethers.parseUnits('0.0001', 'ether').toString(),
+  }
+  
+  const safeTransaction = await protocolKit.createTransaction({
+    transactions: [safeTransactionData],
+  })
+  
+  // Sign the transaction if the Safe have several owners
+  // safeTransaction = await protocolKit1.signTransaction(safeTransaction)
+  // safeTransaction = await protocolKit2.signTransaction(safeTransaction)
+  
+  // Execute the transaction
+  await protocolKit.executeTransaction(safeTransaction)
+}
   return (
 isAuthenticated ? <>    <div className="bg-gray-100 min-h-screen">
 {/* Navbar */}
@@ -126,8 +133,8 @@ isAuthenticated ? <>    <div className="bg-gray-100 min-h-screen">
   <div className="bg-white p-6 rounded-md shadow-md">
     <div className="mb-4">
       <label className="block text-gray-600 text-sm font-bold mb-2">Name:</label>
-      <p className="text-gray-800">{userProfile.name}</p>
-      {userProfile.isScientist ? (
+      <p className="text-gray-800">{uname}</p>
+      {isScientist ? (
       <span className="text-sm text-gray-600 ml-2 font-semibold">(Scientist)</span>
       ) : (
       <span className="text-sm text-gray-300 ml-2 font-semibold">(Reader)</span>
@@ -135,15 +142,15 @@ isAuthenticated ? <>    <div className="bg-gray-100 min-h-screen">
     </div>
     <div className="mb-4">
       <label className="block text-gray-600 text-sm font-bold mb-2">Email:</label>
-      <p className="text-gray-800">{userProfile.email}</p>
+      <p className="text-gray-800">{email}</p>
     </div>
     <div className="mb-4">
       <label className="block text-gray-600 text-sm font-bold mb-2">Wallet ID:</label>
-      <p className="text-gray-800">{userProfile.walletId}</p>
+      <p className="text-gray-800">{walletId}</p>
     </div>
 
     {/* Published Research Information */}
-    <div className="mb-8">
+    { /*<div className="mb-8">
       <h2 className="text-sm font-bold mb-4 text-gray-800">Published Research:</h2>
       <ul className="list-disc pl-4">
       {userProfile.publishedResearch.map((research, index) => (
@@ -154,10 +161,13 @@ isAuthenticated ? <>    <div className="bg-gray-100 min-h-screen">
           </li>
       ))}
       </ul>
+    </div> */}
+ <div className="mb-4">
+      <label className="block text-gray-600 text-sm font-bold mb-2">Staked Amount:</label>
+      <p className="text-gray-800">{stakedAmount + stakedCoin}</p>
     </div>
-
     {/* Staked Amounts Information */}
-    <div>
+    {/*<div>
       <h2 className="text-sm font-bold mb-4 text-gray-800">Staked Amount:</h2>
       <ul className="list-disc pl-4">
         {userProfile.stakedAmounts.map((stakedAmount, index) => (
@@ -176,10 +186,37 @@ isAuthenticated ? <>    <div className="bg-gray-100 min-h-screen">
       </li>
           ))}
       </ul>
-   </div>
+   </div> */}
 
     {/* Add more profile information fields as needed */}
   </div>
+<div className='flex flex-row justify-center'>
+<div className="mt-8 h-auto">
+          <div className="bg-gray-200 p-6 rounded-md shadow-md">
+            <h2 className="text-xl font-bold mb-4">Research Options for Basic Users</h2>
+            <ul className="list-disc ml-4">
+              <li>Read research papers</li>
+              <li>Like research papers</li>
+            </ul>
+            <Button>Continue as Basic user</Button>
+          </div>
+        </div>
+
+        {/* Research Options for Resource People */}
+        <div className="mt-8 h-64">
+          <div className="bg-gray-200 p-6 rounded-md shadow-md">
+            <h2 className="text-xl font-bold mb-4">Research Options for Resource People</h2>
+            <ul className="list-disc ml-4">
+              <li>Read research papers</li>
+              <li>Raise disputes</li>
+              <li>Approve research papers</li>
+              <li>Join academic talks</li>
+              <li>Stake 0.5 ETH as security</li>
+            </ul>
+            <Button onClick={createT}>Stake 1 ETH</Button>
+          </div>
+        </div>
+</div>
 </div>
 
 {/* Footer */}
@@ -191,6 +228,7 @@ isAuthenticated ? <>    <div className="bg-gray-100 min-h-screen">
   <div className="mt-4">
     <p>&copy; 2023 DeEx3. All rights reserved.</p>
   </div>
+  
 </footer>
 </div></>
 :<><h1>Connect a account first</h1></>
