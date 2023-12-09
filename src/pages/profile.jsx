@@ -5,11 +5,9 @@ import React ,{useEffect,useState} from 'react';
 import { ethers } from 'ethers'
 import { EthersAdapter ,protocolKit} from '@safe-global/protocol-kit'
 
-import {Safe,
+import {
     SafeAuthPack,
-    SafeAuthConfig,
-    SafeAuthInitOptions,
-    SafeAuthUserInfo
+
   } from '@safe-global/auth-kit'
 
 const Profile = () => {
@@ -32,13 +30,13 @@ useEffect(() => {
         enableLogging: true,
         buildEnv: 'production',
         chainConfig: {
-          chainId: chainId || '64',
+          chainId: chainId || '0x64',
           rpcTarget: 'https://gnosis.drpc.org'
         }
       }
 
       const authPack = new SafeAuthPack()
-      const web3Provider = safeAuthPack.getProvider()
+      const web3Provider = authPack.getProvider()
       const provider = new ethers.BrowserProvider(authPack.getProvider())
       const signer = provider.getSigner()
       await authPack.init(options)
@@ -46,13 +44,10 @@ useEffect(() => {
         ethers,
         signerOrProvider: signer || provider,
       })
-      const safeAddress =  '0x'
+   
 
       // Instantiate the protocolKit
-      const protocolKit = await Safe.create({
-        ethAdapter,
-       safeAddress
-      })
+  
       console.log('safeAuthPack:safeEmbed', authPack.safeAuthEmbed)
 
       setSafeAuthPack(authPack)
@@ -90,24 +85,7 @@ const [stakedCoin,setStakedCoin]=useState(null);
 
 
 
-const createT=async ()=>{
-  const safeTransactionData= {
-    to: '0x3e50874CdAb58B6fAf539da09B6966a1BE597D5C',
-    data: '0x',
-    value: ethers.parseUnits('0.0001', 'ether').toString(),
-  }
-  
-  const safeTransaction = await protocolKit.createTransaction({
-    transactions: [safeTransactionData],
-  })
-  
-  // Sign the transaction if the Safe have several owners
-  // safeTransaction = await protocolKit1.signTransaction(safeTransaction)
-  // safeTransaction = await protocolKit2.signTransaction(safeTransaction)
-  
-  // Execute the transaction
-  await protocolKit.executeTransaction(safeTransaction)
-}
+
   return (
 isAuthenticated ? <>    <div className="bg-gray-100 min-h-screen">
 {/* Navbar */}
@@ -213,7 +191,7 @@ isAuthenticated ? <>    <div className="bg-gray-100 min-h-screen">
               <li>Join academic talks</li>
               <li>Stake 0.5 ETH as security</li>
             </ul>
-            <Button onClick={createT}>Stake 1 ETH</Button>
+            <Button >Stake 1 ETH</Button>
           </div>
         </div>
 </div>

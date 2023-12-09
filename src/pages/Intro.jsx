@@ -7,8 +7,7 @@ import { useEffect ,useState} from 'react';
 
 import {
   SafeAuthPack,
-  SafeAuthConfig,
-  SafeAuthInitOptions,
+ 
 } from '@safe-global/auth-kit'
 
 
