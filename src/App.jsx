@@ -2,14 +2,16 @@
 import Intro from './pages/Intro'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './index.css'
+import SampleComponent from './pages/sample';
 function App() {
   return (
    
     <Router>
       <div className="App">
-       <Intro/>
+      
         <Routes>
-          <Route path="/" exact component={Intro} />
+        <Route path="/sample" Component={SampleComponent}/>
+        <Route path="/" Component={Intro}/>
         
         </Routes>
       </div>
