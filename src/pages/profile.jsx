@@ -1,12 +1,17 @@
 // SampleComponent.jsx
 import { Link } from 'react-router-dom';
 import { Button } from 'antd';
+import { useAccount, useConnect, useDisconnect } from 'wagmi'
+
 import React ,{useEffect,useState} from 'react';
 import { ethers } from 'ethers'
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 
 const Profile = () => {
-
+  const { address, isConnected ,connector} = useAccount()
+  const { connect, connectors, error, isLoading, pendingConnector } =
+    useConnect()
 const [isAuthenticated,setIsAuthenticated]=useState(false)
 
 
@@ -18,14 +23,15 @@ const [stakedAmount,setStakedAmount]=useState(0.0)
 const [stakedCoin,setStakedCoin]=useState(null);
 
 
-
+console.log(address)
 
   return (
-isAuthenticated ? <>    <div className="bg-gray-100 min-h-screen">
+isConnected ? <>    <div className="bg-gray-100 min-h-screen">
 {/* Navbar */}
 <nav className="bg-blue-500 text-white p-4 flex justify-between items-center">
   <div className="text-lg font-bold">DeEx3</div>
   <div className="flex space-x-4">
+    <ConnectButton/>
     <Link to="/" className="hover:text-gray-300">Home</Link>
     <Button>
     <Link to="/login" className="hover:text-gray-300">Logout</Link>
@@ -58,7 +64,7 @@ isAuthenticated ? <>    <div className="bg-gray-100 min-h-screen">
     </div>
     <div className="mb-4">
       <label className="block text-gray-600 text-sm font-bold mb-2">Wallet ID:</label>
-      <p className="text-gray-800">{walletId}</p>
+      <p className="text-gray-800">{address}</p>
     </div>
 
     {/* Published Research Information */}
@@ -78,6 +84,9 @@ isAuthenticated ? <>    <div className="bg-gray-100 min-h-screen">
       <label className="block text-gray-600 text-sm font-bold mb-2">Staked Amount:</label>
       <p className="text-gray-800">{stakedAmount + stakedCoin}</p>
     </div>
+    <Button>
+    <Link to="/upload" className="hover:text-gray-300">Upload a Research Paper</Link>
+    </Button>
     {/* Staked Amounts Information */}
     {/*<div>
       <h2 className="text-sm font-bold mb-4 text-gray-800">Staked Amount:</h2>

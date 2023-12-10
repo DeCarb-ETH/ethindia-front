@@ -25,31 +25,23 @@ import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
 
 
-const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [mainnet,goerli],
-  [alchemyProvider({ apiKey: 'SWypBzm6yE89AgMiZ8k0DI0fub8ZGJxj' }), publicProvider()],
-)
-/*const { connectors } = getDefaultWallets({
+const { chains, publicClient } = configureChains(
+  [mainnet, polygon, optimism, arbitrum, base, zora],
+  [
+    alchemyProvider({ apiKey: 'SWypBzm6yE89AgMiZ8k0DI0fub8ZGJxj' }),
+    publicProvider()
+  ]
+);
+
+const { connectors } = getDefaultWallets({
   appName: 'dex3',
   projectId: '956b53753b69e446b54f8600367a0e3f',
   chains
 });
-*/
+
 const wagmiConfig = createConfig({
   autoConnect: true,
-  connectors: [
-    new MetaMaskConnector({ chains }),new InjectedConnector({
-      chains,
-      options: {
-        name: 'Injected',
-        shimDisconnect: true,
-      },
-    }),  new WalletConnectConnector({
-      chains,
-      options: {
-        projectId: '956b53753b69e446b54f8600367a0e3f'
-      },
-    }),],
+  connectors,
   publicClient
 })
 
